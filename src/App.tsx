@@ -1,15 +1,75 @@
-import { useState, useEffect, useCallback, ReactNode, useRef } from 'react';
+import React, { useState, useEffect, useCallback, ReactNode, useRef, ErrorInfo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   ChevronLeft, ChevronRight, Share2, ShieldAlert, Fingerprint, Lock, 
   Database, Users, Activity, Hexagon, Key, Link2, Search, CheckCircle2,
   AlertTriangle, Network, Zap, TerminalSquare, ShieldCheck,
-  Server, Smartphone, Play, Loader2, Check, ExternalLink, ActivitySquare, Eye
+  Server, Smartphone, Play, Loader2, Check, ExternalLink, ActivitySquare, Eye, AlertOctagon
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
+// --- Production Error Boundary ---
+interface ErrorBoundaryProps {
+  children: ReactNode;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  state: ErrorBoundaryState = { hasError: false, error: null };
+
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('Applet Error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="w-screen h-screen bg-bg text-text-main flex flex-col items-center justify-center font-mono p-8 text-center">
+          <AlertOctagon className="w-16 h-16 text-red-500 mb-4" />
+          <h1 className="text-2xl font-bold mb-2">SYSTEM FAILURE DETECTED</h1>
+          <p className="text-text-dim max-w-lg mb-6">
+            The presentation encountered a fatal error during rendering. Please refresh the page to try again.
+          </p>
+          <div className="bg-card border border-border p-4 text-left text-sm text-red-400 overflow-auto max-w-2xl w-full">
+            {this.state.error?.message}
+          </div>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-8 border border-accent bg-accent-soft text-accent px-6 py-2 hover:bg-accent/20 transition-colors"
+          >
+            REBOOT SYSTEM
+          </button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 // UI Components
-const FuturisticButton = ({ onClick, children, active, disabled, pulsing }: any) => (
+interface FuturisticButtonProps {
+  key?: string | number;
+  onClick: () => void;
+  children: ReactNode;
+  active?: boolean;
+  disabled?: boolean;
+  pulsing?: boolean;
+}
+
+const FuturisticButton = ({ onClick, children, active, disabled, pulsing }: FuturisticButtonProps) => (
   <motion.button 
     whileHover={{ scale: disabled ? 1 : 1.02, backgroundColor: disabled ? '' : 'var(--color-accent-soft)' }}
     whileTap={{ scale: disabled ? 1 : 0.98 }}
@@ -462,8 +522,14 @@ const Typewriter = ({ text }: { text: string }) => {
 }
 
 
+interface GraphData {
+  time: number;
+  breachSeverity: number;
+  ssiAdoption: number;
+}
+
 const LiveGraphSlide = () => {
-  const [data, setData] = useState<any[]>([]);
+  const [data, setData] = useState<GraphData[]>([]);
   const [paused, setPaused] = useState(false);
   
   // Predict live data
@@ -755,7 +821,15 @@ const slides = [
   { id: 'thanks', title: "Thank You", component: ThankYouSlide }
 ];
 
-export default function App() {
+export default function AppWrapper() {
+  return (
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
+  );
+}
+
+function App() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [direction, setDirection] = useState(0);
 
