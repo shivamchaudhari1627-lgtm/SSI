@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #09090b;
+  --color-card: #111114;
+  --color-accent: #06b6d4;
+  --color-accent-soft: rgba(6, 182, 212, 0.1);
+  --color-border: #27272a;
+  --color-text-main: #fafafa;
+  --color-text-dim: #a1a1aa;
+  
+  --font-mono: 'Courier New', Courier, monospace;
+  --font-sans: 'Helvetica Neue', Arial, sans-serif;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-text-main);
+    font-family: var(--font-sans);
+    overflow: hidden;
+  }
+}
